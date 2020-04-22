@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo> 
+	<!-- =========================== start ========================= -->
+	<!-- Create Project Invoice Wizard Form View -->
+	 <record id="view_create_project_invoice_wizard_form" model="ir.ui.view">
+	        <field name="name">Invoice Orders</field>
+	        <field name="model">create.project.invoice.wizard</field>
+	        <field name="arch" type="xml">
+	            <form string="Invoice Sales Order">
+	                <p class="oe_grey">
+	                    Invoices will be created in draft so that you can review
+	                    them before validation.
+	                </p>
+	                <div><field name ="project_invoice_line" readonly="1" > 
+	                	<tree>
+	                	 <field name="sequence"/>
+	                	 <field name="name"/>
+	                	 <field name="quantity"/>
+	                	 <field name="account_id"/>
+	                	</tree>
+	                	</field>
+	                </div>
+	                <footer>
+	                    <button name="create_project_invoice" string="Create and View Invoices" type="object"
+	                        context="{'open_project_invoices': True}" class="btn-primary" />
+	                    <button name="create_project_invoice" string="Create Invoices" type="object"
+	                        class="btn-primary"/>
+	                    <button string="Cancel" class="btn-default" special="cancel"/>
+	                </footer>
+	            </form>
+	        </field>
+	    </record>
+	
+	    <!-- Create Project Invoice Wizard Action  -->
+	    <record id="action_view_create_project_invoice_wizard" model="ir.actions.act_window">
+	        <field name="name">Invoice Order</field>
+	        <field name="type">ir.actions.act_window</field>
+	        <field name="res_model">create.project.invoice.wizard</field>
+	        <field name="view_type">form</field>
+	        <field name="view_mode">form</field>
+	        <field name="target">new</field>
+	    </record>
+	    <!-- =========================== stop ========================= -->
+</odoo>

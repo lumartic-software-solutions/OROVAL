@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+	
+	
+	<record model="ir.ui.view" id="project_task_tree_inherit_custom2">
+		<field name="name">project.task.form.view.custom2</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="project.view_task_tree2"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='project_id']" position="after">
+				<field name="deadline" />
+			</xpath>
+		</field>
+	</record>
+	
+	
+	<record model="ir.ui.view" id="project_task_inherit">
+		<field name="name">project.task.form.view</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="project.view_task_form2"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='date_deadline']" position="replace">
+				<field name="date_deadline" invisible="1" />
+			</xpath>
+			<xpath expr="//field[@name='tag_ids']" position="after">
+				<field name="deadline" />
+			</xpath>
+			<xpath expr="//div[@class='oe_chatter']" position="replace">
+				<div class="oe_chatter">
+					<field name="message_follower_ids" widget="mail_followers" groups="project.group_project_manager"/>
+					<field name="message_ids" widget="mail_thread" groups="project.group_project_manager"/>
+				</div>
+			</xpath>
+		</field>
+	</record>
+	
+	
+	
+	<record model="ir.ui.view" id="project_task_inherit_kanban">
+		<field name="name">project.task.kanban.view</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="project.view_task_kanban"/>
+		<field name="arch" type="xml">
+			<field name="date_deadline" position="replace">
+				<field name="date_deadline" invisible="1"/>
+			</field>
+			<field name="active" position="before">
+				<field name="deadline" />
+			</field>
+			<xpath expr="//div[@class='text-muted']" position="replace">
+				<div class="text-muted">
+					<field name="project_id" invisible="context.get('default_project_id', False)"/>
+					<i>
+						<b>
+							<field name="deadline"/>
+						</b>
+					</i>
+				</div>
+			</xpath>
+			
+		</field>
+	</record>
+	
+	<record model="ir.ui.view" id="calendar_event_inherit_form">
+		<field name="name">calendar.event.form.view</field>
+		<field name="model">calendar.event</field>
+		<field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+		<field name="arch" type="xml">
+			<field name="start_datetime" position="before">
+				<field name="customer" />
+			</field>
+			<field name="description" position="before">
+				<group>
+					<group>
+						<field name="partner_shipping_id" />
+						<label for="street" string="Address"/>
+						<div class="o_address_format">
+							<field name="street" placeholder="Street..." class="o_address_street" />
+							<field name="street2" placeholder="Street 2..." class="o_address_street"/>
+							<field name="city" placeholder="City" class="o_address_city" />
+							<field name="state_id" class="o_address_state" placeholder="State"/>
+							<field name="zip" placeholder="ZIP" class="o_address_zip" />
+							<field name="country_id" placeholder="Country" class="o_address_country" />
+						</div>
+						<field name="phone" />
+						<field name="mobile" />
+					</group>
+				</group>
+			</field>
+			
+		</field>
+	</record>
+	
+	<record model="ir.ui.view" id="calendar_event_popup_inherit_form">
+		<field name="name">calendar.event.form.popup.view</field>
+		<field name="model">calendar.event</field>
+		<field name="inherit_id" ref="calendar.view_calendar_event_form_popup"/>
+		<field name="arch" type="xml">
+			<xpath expr="//form//field[@name='state']" position="before">
+				<header>
+					<button name="view_task" type="object" string="Task" class="btn btn-primary btn-sm
+						o_form_button_edit" />
+				</header>
+			</xpath>
+			<field name="partner_ids" position="after">
+				<field name="customer" />
+				<field name="partner_shipping_id" />
+				<label for="street" string="Address"/>
+				<div class="o_address_format">
+					<field name="street" placeholder="Street..." class="o_address_street" />
+					<field name="street2" placeholder="Street 2..." class="o_address_street"/>
+					<field name="city" placeholder="City" class="o_address_city" />
+					<field name="state_id" class="o_address_state" placeholder="State"/>
+					<field name="zip" placeholder="ZIP" class="o_address_zip" />
+					<field name="country_id" placeholder="Country" class="o_address_country" />
+				</div>
+				<field name="phone" />
+				<field name="mobile" />
+			</field>
+		</field>
+	</record>
+	
+	<record id="calendar.view_calendar_event_calendar" model="ir.ui.view">
+		<field name="name">calendar.event.calendar</field>
+		<field name="model">calendar.event</field>
+		<field name="priority" eval="2"/>
+		<field name="arch" type="xml">
+			<calendar string="Meetings" date_start="start" date_stop="stop" date_delay="duration"
+				all_day="allday" mode="day" display="[name]-[customer]" color="color_partner_id"
+				attendee="partner_ids" avatar_model="res.partner" use_contacts="True" event_open_popup="%(calendar.view_calendar_event_form_popup)s">
+				<field name="name"/>
+				<field name="customer" />
+				<field name="phone" />
+				<field name="mobile" />
+				<field name="user_id"/>
+				<field name="color_partner_id"/>
+				<field name="partner_ids"/>
+			</calendar>
+		</field>
+	</record>
+</odoo>
+
+                     

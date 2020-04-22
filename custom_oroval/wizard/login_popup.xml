@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<!-- login popup Wizard Form View -->
+	<record id="view_login_popup_form" model="ir.ui.view">
+		<field name="name">Login</field>
+		<field name="model">login.popup</field>
+		<field name="arch" type="xml">
+			<form string="Login Alert">
+				<p style="font-size:18px;">Por favor ingrese la asistencia. Primero vaya al menú de asistencia.</p>
+				<group>
+				</group>
+				<footer>
+					<button name="login_popup" string="OK" type="object" class="btn-primary" />
+				</footer>
+			</form>
+		</field>
+	</record>
+	
+	<!-- login popup Wizard Action  -->
+	<record id="action_login_popup_wizard" model="ir.actions.act_window">
+		<field name="name">Login Alert</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">login.popup</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">form</field>
+		<field name="target">new</field>
+	</record>
+	
+	<!-- <menuitem id="menu_hr_attendance_login_alert" name="Login Alert" parent="hr_attendance.menu_hr_attendance_root"
+		sequence="10" groups="hr.group_hr_attendance" action="custom_oroval.action_login_popup_wizard" /> -->
+	
+</odoo>

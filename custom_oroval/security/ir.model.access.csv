@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_check_measurement_line,name_check_measurement_line,custom_oroval.model_check_measurement_line,,1,1,1,1
+access_project_stage,name_project_stage,custom_oroval.model_project_stage,,1,1,1,1
+mail.access_mail_message_all,mail.message.all,mail.model_mail_message,,1,1,1,1
+

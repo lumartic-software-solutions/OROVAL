@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<template id="custom_layout">
+			<!-- Multicompany -->
+			
+			<t t-if="o and 'company_id' in o">
+				<t t-set="company" t-value="o.company_id.name">
+				</t>
+			</t>
+			<t t-if="not o or not 'company_id' in o">
+				<t t-set="company" t-value="res_company">
+				</t>
+			</t>
+			<t t-call="custom_oroval.custom_layout_header"/>
+			<t t-raw="0" />
+		</template>
+		<template id="custom_layout_header">
+			
+			<t t-if="o.company_id.custom_header == True">
+				<div class="header">
+					<div class="row">
+						<div class="col-xs-6">
+
+							<img t-if="o.company_id.logo" t-att-src="'data:image/png;base64,%s' % o.company_id.logo"
+								style="max-height:170px; max-width:170px;" />
+						</div>
+						<div class="text-right col-xs-6" >
+							<span t-field="o.company_id.rml_header1" style="background-color:red; color:white;
+								font-size:30px"/>
+							<br/>
+							<t t-if="o.company_id.custom_header == True">
+								<span t-field="o.company_id.header_text" style="display:inline-block; " />
+							</t>
+						</div>
+					</div>
+				</div>
+			</t>
+			<t t-if="o.company_id.custom_header == False">
+				<div class="header">
+					<div class="row">
+						<div class="col-xs-3">
+							<img t-if="o.company_id.logo" t-att-src="'data:image/png;base64,%s' % o.company_id.logo"
+								style="max-height:100px;"/>
+						</div>
+						<div class="col-xs-9 text-right" style="margin-top:20px;" t-field="o.company_id.rml_header1"/>
+					</div>
+					<div class="row zero_min_height">
+						<div class="col-xs-12">
+							<div style="border-bottom: 1px solid black;">
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-xs-6" name="company_address">
+							<span t-field="o.company_id.partner_id" t-field-options='{"widget": "contact", "fields":
+								["address", "name"], "no_marker": true}' style="border-bottom: 1px solid black;
+								display:inline-block;"/>
+						</div>
+					</div>
+					
+				</div>
+			</t>
+			
+			<t t-if="o.company_id.footer_selection == 'footer_text'">
+				<div class="footer"  >
+					<div class="row" >
+						<div class="row" >
+							<div class="col-xs-12" style=" max-width:100% !important; border-top: 1px solid black;"
+								>
+								<span t-field="o.company_id.footer_text" style="display:inline-block; " />
+								
+							</div>
+							<div class="text-center"  >
+								<ul class="list-inline">
+									<li>Page:</li>
+									<li>
+										<span class="page"/>
+									</li>
+									<li>/</li>
+									<li>
+										<span class="topage"/>
+									</li>
+								</ul>
+							</div>
+							
+						</div>
+						
+						
+						
+					</div>
+				</div>
+			</t>
+			<t t-if="o.company_id.footer_selection == 'image_footer'">
+				<div class="footer" >
+					<div class="row" >
+						<div class="row">
+							<div class="col-xs-12 text-center" t-attf-style=" max-height :100px !important; max-width
+								:100% !important; border: 1px !important; border-style: groove !important;
+								border-color:#000000;">
+								<img t-if="o.company_id.image_footer" t-att-src="'data:image/png;base64,%s' % o.company_id.image_footer"
+									t-attf-style=" max-height :70px; width :100%;" />
+								<ul class="list-inline">
+									<li>Page:</li>
+									<li>
+										<span class="page"/>
+									</li>
+									<li>/</li>
+									<li>
+										<span class="topage"/>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</t>
+			
+			
+			<t t-if="o.company_id.footer_selection == False">
+				<div class="footer">
+					<div class="text-center" style="border-top: 1px solid black;">
+						<ul t-if="not o.company_id.custom_footer" class="list-inline">
+							<t t-set="o.company_id" t-value="o.company_id.sudo()"/>
+							<li t-if="o.company_id.phone">
+								Phone:
+								<span t-field="o.company_id.phone"/>
+							</li>
+							
+							<li t-if="o.company_id.fax and company.phone">&amp;bull;</li>
+							<li t-if="o.company_id.fax">
+								Fax:
+								<span t-field="company.fax"/>
+							</li>
+							
+							<li t-if="o.company_id.email and o.company_id.fax or o.company_id.email and o.company_id.phone">&amp;bull;</li>
+							<li t-if="o.company_id.email">
+								Email:
+								<span t-field="o.company_id.email"/>
+							</li>
+							
+							<li t-if="o.company_id.website and o.company_id.email or o.company_id.website and
+								o.company_id.fax or o.company_id.website and o.company_id.phone">&amp;bull;</li>
+							<li t-if="o.company_id.website">
+								Website:
+								<span t-field="o.company_id.website"/>
+							</li>
+						</ul>
+						
+						<ul t-if="not o.company_id.custom_footer" class="list-inline" name="financial_infos">
+							<li t-if="o.company_id.vat">
+								TIN:
+								<span t-field="o.company_id.vat"/>
+							</li>
+						</ul>
+						
+						<t t-if="o.company_id.custom_footer">
+							<span t-raw="o.company_id.rml_footer"/>
+						</t>
+						
+						<ul class="list-inline">
+							<li>Page:</li>
+							<li>
+								<span class="page"/>
+							</li>
+							<li>/</li>
+							<li>
+								<span class="topage"/>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</t>
+		</template>
+	</data>
+</odoo>

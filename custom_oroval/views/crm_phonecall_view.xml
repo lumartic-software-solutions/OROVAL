@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data>
+		<!-- search view of crm phonecall -->
+		<record id="view_crm_case_phonecalls_filter_inherit" model="ir.ui.view">
+			<field name="name">CRM - Phone Calls Search Inherit</field>
+			<field name="model">crm.phonecall</field>
+			<field name="inherit_id" ref="crm_phonecall.view_crm_case_phonecalls_filter" />
+			<field name="arch" type="xml">
+				<data>
+					<xpath expr="//field[@name='state']" position="after">
+						<field name="task_id"/>
+						<field name="alarm_ids"/>
+					</xpath>
+					<xpath expr="//group" position="inside">
+						<filter name="group_by_task_id" string="Task" domain="[]" context="{'group_by':'task_id'}"/>
+						<filter name="group_by_alarm_ids" string="Reminders" domain="[]" context="{'group_by':'alarm_ids'}"/>
+					</xpath>
+				</data>
+			</field>
+		</record>
+		
+		<!-- form view of crm phonecall -->
+		<record id="crm_case_phone_form_view_inherit" model="ir.ui.view">
+			<field name="name">CRM - Phone Calls form Inherit</field>
+			<field name="model">crm.phonecall</field>
+			<field name="inherit_id" ref="crm_phonecall.crm_case_phone_form_view" />
+			<field name="arch" type="xml">
+				<data>
+					<xpath expr="//field[@name='partner_id']" position="before">
+						<field name="alarm_ids" widget="many2many_tags"/>
+					</xpath>
+				</data>
+			</field>
+		</record>
+		
+		<!-- tree view of crm phonecall -->
+		<record id="crm_case_inbound_phone_tree_view_inherit" model="ir.ui.view">
+			<field name="name">CRM - Phone Calls tree Inherit</field>
+			<field name="model">crm.phonecall</field>
+			<field name="inherit_id" ref="crm_phonecall.crm_case_inbound_phone_tree_view" />
+			<field name="arch" type="xml">
+				<data>
+					<xpath expr="//field[@name='partner_id']" position="before">
+						<field name="alarm_ids" widget="many2many_tags"/>
+					</xpath>
+				</data>
+			</field>
+		</record>
+	</data>
+</odoo>

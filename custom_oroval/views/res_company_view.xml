@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+		<!-- set Oroval Configuration in Company -->
+		<record id="inherit_res_company_view" model="ir.ui.view">
+			<field name="name">inherit.res_company.view</field>
+			<field name="model">res.company</field>
+			<field name="inherit_id" ref="base.view_company_form" />
+			<field name="type">form</field>
+			<field name="arch" type="xml">
+				<notebook position="inside">
+					<page string="Oroval Configuration">
+						<group String ="Select Template">
+							<group >
+								<field name="custom_header" />
+								<field name="header_text" attrs="{'invisible': [('custom_header','=',False)]}"/>
+								<field name="footer_selection" />
+								<field name="footer_text" attrs="{'invisible': [('footer_selection','in',['image_footer',False])]}"
+									/>
+								<field name="image_footer" attrs="{'invisible': [('footer_selection','in',['footer_text',False])]}"
+									/>
+							</group>
+						</group>
+					</page>
+				</notebook>
+			</field>
+		</record>
+	</data>
+</openerp>

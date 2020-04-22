@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+calendar.access_calendar_event_all_employee,calendar.event_all_employee,calendar.model_calendar_event,base.group_user,1,0,0,0
+access_project_task_user,project_task_user,project.model_project_task,base.group_user,1,0,0,0
+project.access_project_task,project.task,project.model_project_task,project.group_project_user,1,0,0,0
+access_project_task_hr_manager,project_task_hr_manager,project.model_project_task,hr.group_hr_manager,1,1,1,1
+access_project_task_manager,project_task_manager,model_project_task,project.group_project_manager,1,1,1,1

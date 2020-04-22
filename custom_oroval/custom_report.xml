@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+	<record id="oroval_custom_paperformat" model="report.paperformat">
+			<field name="name">Oroval</field>
+			<field name="default" eval="False" />
+			<field name="format">custom</field>
+			<field name="page_height">320</field>
+			<field name="page_width">220</field>
+			<field name="orientation">Portrait</field>
+			<field name="margin_top">40</field>
+			<field name="margin_bottom">23</field>
+			<field name="margin_left">7</field>
+			<field name="margin_right">7</field>
+			<field name="header_line" eval="False" />
+			<field name="header_spacing">40</field>
+			<field name="dpi">90</field>
+		</record> 
+		
+		<!-- customer or warehose report -->
+		<report id="report_sale_custom" string="Sale Report" model="sale.order" report_type="qweb-pdf"
+			file="custom_oroval.custom_sale_template" name="custom_oroval.custom_sale_template"
+			menu="True"  paperformat="custom_oroval.oroval_custom_paperformat"/>
+		<report id="report_invoice_custom" string="Invoice Report" model="account.invoice"
+			report_type="qweb-pdf" file="custom_oroval.custom_invoice_template" name="custom_oroval.custom_invoice_template"
+			menu="True" paperformat="custom_oroval.oroval_custom_paperformat"/>
+	</data>
+</odoo>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<!-- Register css -->
+		<template id="assets_backend" name="Open Mobile Assets" inherit_id="web.assets_backend">
+			<xpath expr=".">
+				<link rel="stylesheet" href="/custom_oroval/static/src/css/custom.css" />
+			<script type="text/javascript" src="/custom_oroval/static/src/js/custom.js"/>
+					</xpath>
+		</template>
+	</data>
+</odoo>

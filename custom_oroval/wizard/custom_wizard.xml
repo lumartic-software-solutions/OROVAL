@@ -1,0 +1,126 @@
+<odoo>
+	
+	<record id="new_wizard_form" model="ir.ui.view">
+		<field name="name">new wizard form</field>
+		<field name="model">new.wizard</field>
+		<field name="arch" type="xml">
+			<form>
+				<group>
+					<field name="name" readonly="1" invisible="context.get('stop_task') or context.get('end_task')"
+						nolabel="1"/>
+				</group>
+				<group>
+					<field name="description" invisible="context.get('start_task') or context.get('continue_task')
+						or context.get('restart_task')" required="context.get('stop_task') or context.get('end_task')"
+						/>
+				</group>
+				<footer>
+					<button name="accept_task" string="Accept" type="object" class="oe_highlight" context="{'ok'
+						: True}"/>
+					<button string="Cancel" class="btn-default" special="cancel" context="{'cancel' :
+						True}"/>
+				</footer>
+			</form>
+		</field>
+	</record>
+	
+	<record id="new_wizard_tree" model="ir.ui.view">
+		<field name="name">new wizard tree</field>
+		<field name="model">new.wizard</field>
+		<field name="arch" type="xml">
+			<tree>
+				<field name="name" readonly="1" invisible="context.get('end_task')"/>
+
+				<field name="description" invisible="context.get('start_task','continue_task')"/>
+			</tree>
+		</field>
+	</record>
+	
+	<record id="action_new_wizard_custom" model="ir.actions.act_window">
+		<field name="name">Task Action</field>
+		<field name="res_model">new.wizard</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">form</field>
+		<field name="target">new</field>
+	</record>
+	
+	
+	<record model="ir.ui.view" id="sale_advance_payment_inv_view_inherit">
+		<field name="name">sale.advance.payment.inv.form.inherit</field>
+		<field name="model">sale.advance.payment.inv</field>
+		<field name="inherit_id" ref="sale.view_sale_advance_payment_inv"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='advance_payment_method']" position="after">
+				<field name="check_measurement_lines" class="oe_inline" attrs="{'invisible': [('advance_payment_method',
+					'in', ('fixed','percentage','delivered','all'))]}">
+					<tree editable="bottom" create="false" class="custom_class" >
+						<field name="select_task"/>
+						<field name="ud" readonly="1"/>
+						<field name="des_unit_measurement" readonly="1"/>
+						<field name="length" readonly="1"/>
+						<field name="width" readonly="1"/>
+						<field name="height" readonly="1"/>
+						<field name="measurement_result" readonly="1"/>
+					</tree>
+				</field>
+				<field name="sale_order_line" class="oe_inline" attrs="{'invisible': [('advance_payment_method',
+					'in', ('fixed','percentage','delivered','all'))]}" >
+					<tree editable="bottom" create="false" class="custom_class">
+						<field name="select_line"/>
+						<field name="product_id" readonly="1"/>
+						<field name="layout_category_id" readonly="1"/>
+						<field name="name" readonly="1"/>
+						<field name="product_uom_qty" readonly="1"/>
+						<field name="product_uom" readonly="1"/>
+						<field name="price_unit" readonly="1"/>
+						<field name="purchase_price" readonly="1"/>
+						<field name="tax_id" widget="many2many_tags" readonly="1"/>
+						<field name="discount" readonly="1"/>
+						<field name="subtotoal" readonly="1"/>
+					</tree>
+				</field>
+			</xpath>
+		</field>
+	</record>
+	
+	<record id="check_measurement_line_form" model="ir.ui.view">
+		<field name="name">check measurement line form</field>
+		<field name="model">check.measurement.lines</field>
+		<field name="arch" type="xml">
+			<form>
+				<field name="select_task"/>
+				<field name="ud"/>
+				<field name="des_unit_measurement"/>
+				<field name="length"/>
+				<field name="width"/>
+				<field name="height"/>
+				<field name="measurement_result"/>
+			</form>
+		</field>
+	</record>
+	<record id="check_measurement_lines_tree" model="ir.ui.view">
+		<field name="name">check measurement lines tree</field>
+		<field name="model">check.measurement.lines</field>
+		<field name="arch" type="xml">
+			
+			<tree editable="bottom" create="false">
+				<field name="select_task"/>
+				<field name="ud"/>
+				<field name="des_unit_measurement"/>
+				<field name="length"/>
+				<field name="width" />
+				<field name="height"/>
+				<field name="measurement_result"/>
+			</tree>
+			
+		</field>
+	</record>
+	<record id="action_custom_check_measurement_line" model="ir.actions.act_window">
+		<field name="name">custom check measurement line Action</field>
+		<field name="res_model">check.measurement.lines</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">form</field>
+	</record>
+	
+	
+</odoo>

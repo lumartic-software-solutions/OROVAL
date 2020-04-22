@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+	
+	<record model="ir.ui.view" id="project_task_tree_inherit_custom1">
+		<field name="name">project.task.form.view.custom1</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="project.view_task_tree2"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='date_deadline']" position="replace">
+				<field name="date_deadline" invisible="1" />
+			</xpath>
+			<xpath expr="//field[@name='sequence']" position="replace">
+				<field name="sequence" invisible="not context.get('seq_visible', False)" />
+			</xpath>
+			<xpath expr="//field[@name='project_id']" position="replace">
+				<field name="project_id" invisible="context.get('user_invisible', False)" />
+			</xpath>
+			<xpath expr="//field[@name='user_id']" position="replace">
+				<field name="user_id" invisible="context.get('user_invisible', False)"/>
+			</xpath>
+			<xpath expr="//field[@name='stage_id']" position="after">
+				<field name="state" />
+			</xpath>
+		</field>
+	</record>
+
+	<!-- set form id in project task in action -->
+	<record id="action_view_task_form_view_inherit" model="ir.actions.act_window">
+		<field name="name">Tasks</field>
+		<field name="res_model">project.task</field>
+		<field name="view_mode">form,tree,kanban,calendar,pivot,graph</field>
+		<field name="context">{'search_default_my_tasks': 1}</field>
+		<field name="search_view_id" ref="project.view_task_search_form"/>
+		<field name="help" type="html">
+			<p>
+				Odoo's project management allows you to manage the pipeline of your tasks efficiently.
+				You can track progress, discuss on tasks, attach documents, etc.
+			</p>
+		</field>
+	</record>
+	
+		<!-- set state in project task in action -->
+	<record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
+            <field name="name">Tasks</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">kanban,tree,form,calendar,pivot,graph</field>
+            <field name="context">{
+                'group_by': 'state',
+                'search_default_project_id': [active_id],
+                'default_project_id': active_id,
+            }</field>
+            <field name="search_view_id" ref="project.view_task_search_form"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Here, you can create new tasks
+                </p>
+                <p>
+                    You can now manage your tasks in order to get things done efficiently. Track progress, discuss, attach documents, etc.
+                </p>
+            </field>
+        </record>
+	
+	
+	<!-- set form id in project task in kanaban view -->
+	<record model="ir.ui.view" id="project_task_kanban_view_inherit">
+		<field name="name">project.task.kanban.view.inherit</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="project.view_task_kanban"/>
+		<field name="arch" type="xml">
+			<xpath expr="//kanban" position="replace">
+				<kanban disable_drag_drop_record='true' quick_create="false" class="o_kanban_small_column o_kanban_project_tasks"
+					on_create="custom_oroval.action_view_task_form_view_inherit">
+					<field name="color"/>
+					<field name="priority"/>
+					<field name="stage_id" options="{&quot;group_by_tooltip&quot;: {&quot;description&quot;:
+						&quot;Stage Description&quot;, &quot;legend_priority&quot;: &quot;Use of stars&quot;}}"/>
+					<field name="user_id"/>
+					<field name="user_email"/>
+					<field name="description"/>
+					<field name="sequence"/>
+					<field name="remaining_hours" groups="project.group_time_work_estimation_tasks"/>
+					<field name="date_deadline"/>
+					<field name="deadline"/>
+					<field name="message_needaction_counter"/>
+					<field name="tag_ids"/>
+					<field name="attachment_ids"/>
+					<field name="displayed_image_id"/>
+					<field name="active"/>
+					<field name="legend_blocked"/>
+					<field name="legend_normal"/>
+					<field name="legend_done"/>
+					<templates>
+						<t t-name="kanban-box">
+							<div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card
+								oe_kanban_global_click">
+								
+								<div class="o_dropdown_kanban dropdown" groups="base.group_user">
+									<a class="dropdown-toggle btn" data-toggle="dropdown" href="#">
+										<span class="fa fa-bars fa-lg"/>
+									</a>
+									<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+										<t t-if="widget.editable">
+											<li>
+												<a type="set_cover">Set Cover Image</a>
+											</li>
+										</t>
+										<t t-if="widget.editable">
+											<li>
+												<a type="edit">Edit Task</a>
+											</li>
+										</t>
+										<t t-if="widget.deletable">
+											<li>
+												<a type="delete">Delete</a>
+											</li>
+										</t>
+										<li>
+											<ul class="oe_kanban_colorpicker" data-field="color"/>
+										</li>
+									</ul>
+								</div>
+								<div class="oe_kanban_content">
+									<div>
+										<field name="tag_ids"/>
+									</div>
+									<div>
+										<strong>
+											<field name="name"/>
+										</strong>
+									</div>
+									<div class="text-muted">
+										<field name="project_id" invisible="context.get('default_project_id', False)"/>
+										<t t-if="record.deadline.raw_value and record.deadline.raw_value lt (new
+											Date())" t-set="red">oe_kanban_text_red</t>
+										<span t-attf-class="#{red || ''}">
+											<i>
+												<field name="deadline"/>
+											</i>
+										</span>
+									</div>
+									<div class="oe_kanban_bottom_left">
+										<field name="priority" widget="priority"/>
+										<t t-if="record.message_needaction_counter.raw_value">
+											<span class="oe_kanban_mail_new" title="Unread Messages">
+												<i class="fa fa-comments"/>
+												<t t-raw="record.message_needaction_counter.raw_value"/>
+											</span>
+										</t>
+									</div>
+									<div class="oe_kanban_bottom_right">
+										<img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)"
+											t-att-title="record.user_id.value" width="24" height="24" class="oe_kanban_avatar
+											pull-right"/>
+										<div class="pull-left" groups="base.group_user">
+											<field name="kanban_state" widget="kanban_state_selection"/>
+										</div>
+									</div>
+								</div>
+								<div t-if="record.displayed_image_id.value">
+									<field name="displayed_image_id" widget="attachment_image"/>
+								</div>
+								<div class="oe_clear"/>
+							</div>
+						</t>
+					</templates>
+				</kanban>
+			</xpath>
+			<xpath expr="//field[@name='description']" position="after">
+				<field name="partner_id"/>
+			</xpath>
+			<xpath expr="//templates//t//div//div//div[@class='text-muted']" position="after">
+				<div class='text-muted'>
+					<span>
+						<t t-esc="record.partner_id.value"/>
+					</span>
+				</div>
+			</xpath>
+			
+		</field>
+	</record>
+	
+</odoo>
+

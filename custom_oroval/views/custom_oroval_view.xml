@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+	
+	<!--set quntity readony bypass in project wia account invoice -->
+	<record id="account.action_invoice_tree" model="ir.actions.act_window">
+		<field name="name">Invoices</field>
+		<field name="res_model">account.invoice</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">tree,form,calendar,graph</field>
+		<field name="view_id" ref="account.invoice_tree"/>
+		<field name="context">{'type':'out_invoice','readonly_by_pass': ['quantity', 'uom_id'],}</field>
+		<field name="search_view_id" ref="account.view_account_invoice_filter"/>
+	</record>
+	
+	<!--set quntity readony bypass in default account invoice -->
+	<record id="account.action_invoice_tree1" model="ir.actions.act_window">
+		<field name="name">Customer Invoices</field>
+		<field name="res_model">account.invoice</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+		<field eval="False" name="view_id"/>
+		<field name="domain">[('type','in',('out_invoice', 'out_refund'))]</field>
+		<field name="context">
+			{'readonly_by_pass': ['quantity', 'uom_id'],'type':'out_invoice', 'journal_type':
+			'sale'}
+		</field>
+		<field name="search_view_id" ref="account.view_account_invoice_filter"/>
+		<field name="help" type="html">
+			<p class="oe_view_nocontent_create">Click to create a customer invoice.</p>
+			<p>
+				Odoo's electronic invoicing allows to ease and fasten the collection of customer payments.
+				Your customer receives the invoice by email and he can pay online and/or import
+				it in his own system.
+			</p>
+			<p>
+				The discussions with your customer are automatically displayed at the bottom of each
+				invoice.
+			</p>
+		</field>
+	</record>
+	
+	
+	<!-- add start account_analytic_line  in tree view -->
+	<record model="ir.ui.view" id="account_analytic_line_tree_inherit">
+		<field name="name">account.analytic.line.tree.view.inherit</field>
+		<field name="model">account.analytic.line</field>
+		<field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='date']" position="before">
+				<field name="start_date"/>
+			</xpath>
+		</field>
+	</record>
+	
+	<!-- set form id in crm lead in kanaban view -->
+	<record model="ir.ui.view" id="crm_case_kanban_view_leads_inherit">
+		<field name="name">crm.lead.kanban.view.inherit</field>
+		<field name="model">crm.lead</field>
+		<field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+		<field name="arch" type="xml">
+			<xpath expr="//kanban" position="replace">
+				<kanban quick_create="false" default_group_by="stage_id" class="o_kanban_small_column
+					o_opportunity_kanban" on_create="crm.create_opportunity_simplified">
+					<field name="stage_id" options="{&quot;group_by_tooltip&quot;: {&quot;requirements&quot;:
+						&quot;Description&quot;, &quot;legend_priority&quot;: &quot;Use of stars&quot;}}"/>
+					<field name="color"/>
+					<field name="priority"/>
+					<field name="planned_revenue"/>
+					<field name="kanban_state"/>
+					<field name="date_action"/>
+					<field name="user_email"/>
+					<field name="user_id"/>
+					<field name="partner_address_email"/>
+					<field name="message_needaction_counter"/>
+					<field name="tag_ids"/>
+					<field name="partner_id"/>
+					<field name="title_action"/>
+					<field name="active"/>
+					<field name="company_currency"/>
+					<templates>
+						<field name="date_deadline"/>
+						<t t-name="kanban-box">
+							<div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_global_click">
+								<div class="o_dropdown_kanban dropdown">
+									
+									<a class="dropdown-toggle btn" data-toggle="dropdown" href="#">
+										<span class="fa fa-bars fa-lg"/>
+									</a>
+									<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+										<t t-if="widget.editable">
+											<li>
+												<a type="edit">Edit</a>
+											</li>
+										</t>
+										<t t-if="widget.deletable">
+											<li>
+												<a type="delete">Delete</a>
+											</li>
+										</t>
+										<li t-if="! record.active.value">
+											<a name="action_set_active" type="object">Unarchive</a>
+										</li>
+										<li t-if="record.active.value">
+											<a name="action_set_unactive" type="object">Archive</a>
+										</li>
+										<li>
+											<ul class="oe_kanban_colorpicker" data-field="color"/>
+										</li>
+									</ul>
+								</div>
+								<div class="oe_kanban_content">
+									<div>
+										<field name="tag_ids"/>
+									</div>
+									<div>
+										<strong>
+											<field name="name"/>
+										</strong>
+									</div>
+									<div class="text-muted">
+										<t t-if="record.planned_revenue.raw_value">
+											<field name="planned_revenue" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+											<span t-if="record.partner_id.value">,</span>
+										</t>
+										<span t-if="record.partner_id.value">
+											<t t-esc="record.partner_id.value"/>
+										</span>
+									</div>
+									
+									<div class="o_kanban_footer">
+										<field name="priority" widget="priority" groups="base.group_user"/>
+										<t t-if="record.message_needaction_counter.raw_value">
+											<span class="oe_kanban_mail_new" title="Unread Messages">
+												<i class="fa fa-comments"/>
+												<t t-raw="record.message_needaction_counter.raw_value"/>
+											</span>
+										</t>
+										<div>
+											<a name="%(crm.crm_activity_log_action)d" type="action" t-if="record.kanban_state.raw_value!='grey'">
+												<span t-att-title="record.date_action.value + ': '+ record.title_action.value" t-attf-class="oe_kanban_status
+													oe_kanban_status_#{record.kanban_state.raw_value}"/>
+											</a>
+											<a name="%(crm.crm_activity_schedule_action)d" type="action" t-if="record.kanban_state.raw_value=='grey'">
+												<span class="oe_kanban_status oe_kanban_status_grey" style="background-color: #F2D600;"/>
+											</a>
+											<img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)"
+												t-att-title="record.user_id.value" width="24" height="24" class="oe_kanban_avatar
+												pull-right"/>
+										</div>
+									</div>
+								</div>
+								<div class="oe_clear"/>
+							</div>
+						</t>
+					</templates>
+				</kanban>
+			</xpath>
+		</field>
+	</record>
+	
+	<record model="ir.ui.view" id="sale_invoice_form_view_inherit">
+		<field name="name">account.invoice.form.view</field>
+		<field name="model">account.invoice</field>
+		<field name="inherit_id" ref="sale.account_invoice_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='partner_shipping_id']" position="replace">
+				<field name="partner_shipping_id" groups="sale.group_delivery_invoice_address" string="Work
+					Address"/>
+			</xpath>
+		</field>
+	</record>
+	
+	
+	<record model="ir.ui.view" id="sale_oder_form_view_inherit">
+		<field name="name">sale.order.form.view</field>
+		<field name="model">sale.order</field>
+		<field name="inherit_id" ref="sale.view_order_form"/>
+		<field name="arch" type="xml">
+			
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='product_id']"
+				position="replace">
+				<field name="product_id" context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty,
+					'pricelist':parent.pricelist_id, 'uom':product_uom, 'company_id': parent.company_id,'search_default_groupby_categ':1
+					}" attrs="{'readonly': ['|','|', ('qty_invoiced', '&gt;', 0), ('procurement_ids',
+					'!=', []),('state' , 'in' , ('sale','done'))]}"/>
+			</xpath>
+			<xpath expr="//notebook" position="inside">
+				<page string="Internal Notes">
+					<field name="internal_note" />
+				</page>
+			</xpath>
+			
+			<xpath expr="//field[@name='partner_shipping_id']" position="replace">
+				<field name="partner_shipping_id" groups="sale.group_delivery_invoice_address" context="{'default_type':'delivery'}"
+					string="Work Address"/>
+			</xpath>
+			
+			
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='tax_id']"
+				position="after">
+				<field name="work_hours" />
+			</xpath>
+			<xpath expr="//field[@name='price_unit']" position="after">
+				
+				<field name="total_ud"/>
+				<field name="product_type" invisible="1"/>
+				<field name="sequence"/>
+			</xpath>
+			<!--  product uom and Quantity readonly In  Sale Order Line -->
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='product_uom_qty']"
+				position="replace">
+				<field context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id,
+					'uom':product_uom, 'uom_qty_change':True, 'company_id': parent.company_id}" name="product_uom_qty"
+					class="oe_inline" attrs="{'readonly': [('product_type', '=', 'service')]}"/>
+			</xpath>
+			
+			
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='product_uom']"
+				position="replace">
+				<field name="product_uom" groups="product.group_uom" class="oe_inline oe_no_button"
+					attrs="{'readonly': [('product_type', '=', 'service')]}"/>
+			</xpath>
+			
+			
+			<xpath expr="//notebook//page//field[@name='order_line']//form//field[@name='name']"
+				position="after" >
+				<field name="check_product_uom" invisible="1"/>
+				<field name="result" invisible="1"/>
+				
+				<field name="check_measurement" invisible="1"/>
+				<field name="check_measurement_line" widget="one2many_list" domain="[('check_product_uom',
+					'=', True)]" attrs="{'invisible': [('check_product_uom','=',False)],'readonly':
+					[('state' , 'in' , ('sale','done'))]}" context="{'check_uom' : check_measurement}"/>
+				<label for="related_product"/>
+				<field name="related_product"/>
+				
+			</xpath>
+			
+			<!--  Invisible  Section In  Sale Order Line -->
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='layout_category_id']"
+				position="replace">
+				<field name="layout_category_id" domain="[('active_categ','=',True)]" />
+			</xpath>
+			
+			<!--  Invisible  Delivered Quantity Label In  Sale Order Line -->
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//label[@for='qty_delivered']"
+				position="replace">
+				<label for="qty_delivered" string=" " invisible="1"/>
+			</xpath>
+			<!--  Invisible  Invoiced Quantity Label In  Sale Order Line -->
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//label[@for='qty_invoiced']"
+				position="replace">
+				<label for="qty_invoiced" string=" " invisible="1"/>
+			</xpath>
+			
+			<!--  Invisible  Delivered Quantity Field In  Sale Order Line -->
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='qty_delivered']"
+				position="replace">
+				<field name="qty_delivered" attrs="{'readonly': [('qty_delivered_updateable', '=',
+					False)]}" invisible="1" />
+			</xpath>
+			<!--  Invisible  Invoiced Quantity Field In  Sale Order Line -->
+			<xpath expr="//notebook//page//field[@name='order_line']//form//group//group//field[@name='qty_invoiced']"
+				position="replace">
+				<field name="qty_invoiced"  invisible="1"  />
+			</xpath>
+			<xpath expr="//form//field[@name='client_order_ref']" position="replace">
+			</xpath>
+			<xpath expr="//form//field[@name='payment_term_id']" position="after">
+				
+				<field name="client_order_ref" />
+			</xpath>
+			<xpath expr="//tree" position="replace">
+				<tree string="Sales Order Lines" decoration-info="invoice_status=='to invoice'" class="custom_class">
+					
+					<field name="sequence" widget="handle"/>
+					
+					<field name="sequence"/>
+					<field name="product_id" attrs="{'readonly': ['|', ('qty_invoiced', '&gt;', 0), ('procurement_ids',
+						'!=', [])]}" context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty,
+						'uom':product_uom, 'company_id': parent.company_id}"/>
+					<!--  Invisible  Section In  Sale Order Line -->
+					<field name="layout_category_id" groups="sale.group_sale_layout" domain="[('active_categ','=',True)]"/>
+					<!-- Add Style in Description -->
+					<field name="name" class="notes_width"/>
+					
+					<field name="product_uom_qty" string="Ordered Qty" context="{'partner_id':parent.partner_id,
+						'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom,
+						'company_id': parent.company_id}"/>
+					
+					<field name="check_product_uom"  invisible="1" />
+					<field name="check_measurement" invisible="1"/>
+					
+					<field name="check_measurement_line" domain="[('check_product_uom', '=', True)]" attrs="{'invisible':
+						[('check_product_uom','=',False)],'readonly': [('state' , 'in' , ('sale','done'))]}"
+						context="{'check_uom' : check_measurement}"/>
+					<!--  Invisible  Delivered Quantity In  Sale Order Line -->
+					<field name="qty_delivered" invisible="1" attrs="{'readonly': [('qty_delivered_updateable',
+						'=', False)]}"/>
+					
+					<!--  Invisible  Invoiced Quantity In  Sale Order Line -->
+					<field name="qty_invoiced" invisible="1" />
+					<field name="qty_to_invoice" invisible="1"/>
+					
+					<field name="product_uom" attrs="{'readonly': [('state', 'in', ('sale','done', 'cancel'))]}"
+						context="{'company_id': parent.company_id}" groups="product.group_uom" options="{&quot;no_open&quot;:
+						True}"/>
+					<field name="analytic_tag_ids" groups="analytic.group_analytic_accounting" widget="many2many_tags"/>
+					<field name="price_unit" attrs="{'readonly': [('qty_invoiced', '&gt;', 0)]}"/>
+					<field name="tax_id" widget="many2many_tags" domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"
+						attrs="{'readonly': [('qty_invoiced', '&gt;', 0)]}"/>
+					<field name="discount" groups="sale.group_discount_per_so_line"/>
+					<field name="price_subtotal" widget="monetary" groups="sale.group_show_price_subtotal"/>
+					<field name="price_total" widget="monetary" groups="sale.group_show_price_total"/>
+					<field name="qty_delivered_updateable" invisible="1"/>
+					<field name="procurement_ids" invisible="1"/>
+					<field name="state" invisible="1"/>
+					<field name="invoice_status" invisible="1"/>
+					<field name="customer_lead" invisible="1"/>
+					<field name="currency_id" invisible="1"/>
+				</tree>
+			</xpath>
+		</field>
+	</record>
+	
+	<record model="ir.ui.view" id="sale_quatation_inherit">
+		<field name="name">sale.order.form.view</field>
+		<field name="model">sale.order</field>
+		<field name="inherit_id" ref="sale.view_quotation_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//tree//field[@name='name']" position="after">
+				<field name="client_order_ref" />
+			</xpath>
+		</field>
+	</record>
+	
+	<record model="ir.ui.view" id="sale_orfer_tree_view_inherit">
+		<field name="name">sale.order.tree.view</field>
+		<field name="model">sale.order</field>
+		<field name="inherit_id" ref="sale.view_order_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//tree//field[@name='partner_id']" position="after">
+				<field name="client_order_ref" />
+			</xpath>
+		</field>
+	</record>
+	
+	<record model="ir.ui.view" id="account_invoice_tree_inherit">
+		<field name="name">account.invoice.tree.view</field>
+		<field name="model">account.invoice</field>
+		<field name="inherit_id" ref="account.invoice_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//tree//field[@name='date_due']" position="replace">
+				<field name="name"/>
+			</xpath>
+		</field>
+	</record>
+	
+	<record id="product.product_search_form_view" model="ir.ui.view">
+		<field name="name">product.product.search</field>
+		<field name="model">product.product</field>
+		<field name="mode">primary</field>
+		<field name="inherit_id" ref="product.product_template_search_view"/>
+		<field name="arch" type="xml">
+			<field name="attribute_line_ids" position="replace">
+				<field name="attribute_value_ids" groups="product.group_product_variant"/>
+				<field name="product_tmpl_id" string="Product Template"/>
+				<filter name="groupby_categ" string="Category" context="{'group_by': 'categ_id'}"/>
+			</field>
+		</field>
+	</record>
+	
+	<!-- Add Check Measurement Line In Account Invoice Line Tree View -->
+	<record model="ir.ui.view" id="account_invoice_tree_view_inherit">
+		<field name="name">account.invoice.form.inherit</field>
+		<field name="model">account.invoice</field>
+		<field name="inherit_id" ref="account.invoice_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//notebook//page//field[@name='invoice_line_ids']//tree" position="replace">
+				<tree string="Invoice Lines"  class="custom_class">
+					<field name="sequence" widget="handle"/>
+					<field name="sequence" />
+					<field name="product_id" />
+					<field name="layout_category_id" groups="sale.group_sale_layout" domain="[('active_categ','=',True)]"/>
+					<field name="check_product_uom"  invisible="1" />
+					<field name="check_measurement" invisible="1"/>
+					<field name="check_measurement_line" domain="[('check_product_uom', '=', True)]" attrs="{'invisible':
+						[('check_product_uom','=',False)]}" context="{'check_uom' : check_measurement}"/>
+					<field name="origin" invisible="1"/>
+					<field name="name"  class="notes_width"/>
+					<field name="company_id" invisible="1"/>
+					<field name="account_id" groups="account.group_account_user" domain="[('company_id',
+						'=', parent.company_id), ('internal_type', '=', 'other')]"/>
+					<field name="account_analytic_id" groups="analytic.group_analytic_accounting" domain="[('company_id',
+						'=', parent.company_id)]"/>
+					<field name="analytic_tag_ids" groups="analytic.group_analytic_accounting" widget="many2many_tags"/>
+					<field name="quantity"/>
+					<field name="uom_id" groups="product.group_uom"/>
+					<field name="price_unit"/>
+					<field name="discount" groups="base.group_no_one"/>
+					<field name="invoice_line_tax_ids" widget="many2many_tags" context="{'type':parent.type}"
+						domain="[('type_tax_use','=','sale'),('company_id', '=', parent.company_id)]"
+						options="{'no_create': True}"/>
+					<field name="price_subtotal"/>
+					<field name="currency_id" invisible="1"/>
+				</tree>
+				
+			</xpath>
+			<xpath expr="//form//page[@name='other_info']//group//group//field[@name='name']"
+				position="replace">
+			</xpath>
+			<xpath expr="//form//sheet//group//group//field[@name='team_id']" position="after">
+				<field name="name"/>
+			</xpath>
+			<xpath expr="//button[@name='action_invoice_sent']" position="replace">
+				<button name="action_invoice_sent" type="object" string="Send by Email" attrs="{'invisible':['|',('sent','=',True),
+					('state', '!=', 'open')]}" class="oe_highlight" states="proforma2" groups="base.group_user"/>
+			</xpath>
+			<xpath expr="//button[@name='%(account.action_account_invoice_refund)d']" position="replace">
+				<button name="%(account.action_account_invoice_refund)d" type='action' string='Refund
+					Invoice' groups="account.group_account_invoice" attrs="{'invisible': ['|',('type',
+					'=', 'out_refund'), ('state', 'not in', ('open','paid'))]}"/>
+			</xpath>
+			<xpath expr="//form//sheet//label" position="before">
+				<div class="oe_button_box" name="button_box">
+					<button type="object" name="custom_action_view_project_project" class="oe_stat_button"
+						icon="fa-puzzle-piece" string="Project">
+					</button>
+					<field name="tasks_ids" invisible="1"/>
+					<button type="object" name="custom_action_view_task" class="oe_stat_button" icon="fa-tasks"
+						attrs="{'invisible': [('tasks_count', '=', 0)]}" groups="base.group_user">
+						<field name="tasks_count" widget="statinfo"
+						string="Tasks"/>
+					</button>
+					
+					<button type="object" name="custom_action_view_timesheet" class="oe_stat_button" icon="fa-clock-o"
+						attrs="{'invisible': [('timesheet_count', '=', 0)]}" groups="base.group_user">
+						<field name="timesheet_count" widget="statinfo" string="Timesheets"/>
+					</button>
+				</div>
+			</xpath>
+		</field>
+	</record>
+	
+	<!-- Add Check Measurement Line In Account Invoice Line Form View -->
+	<record id="view_invoice_line_form_inherit" model="ir.ui.view">
+		<field name="name">account.invoice.line.form</field>
+		<field name="model">account.invoice.line</field>
+		<field name="inherit_id" ref="account.view_invoice_line_form"/>
+		<field name="arch" type="xml">
+			<xpath expr="//form//group" position="after">
+				<field name="check_measurement" invisible="1"/>
+				<field name="check_product_uom"  invisible="1" />
+				<label for="check_measurement_line" domain="[('check_product_uom', '=', True)]" attrs="{'invisible':
+					[('check_product_uom','=',False)]}"/>
+				<field name="check_measurement_line" widget="one2many_list" domain="[('check_product_uom',
+					'=', True)]" attrs="{'invisible': [('check_product_uom','=',False)]}" context="{'check_uom'
+					: check_measurement}"/>
+				
+			</xpath>
+			<xpath expr="//field[@name='price_unit']" position="after">
+				<field name="total_ud"/>
+				<field name="product_type" invisible="1"/>
+				<field name="results"   invisible="1"/>
+			</xpath>
+			<xpath expr="//group/group/field[@name='layout_category_id']" position="replace">
+				<field name="layout_category_id" groups="sale.group_sale_layout" domain="[('active_categ','=',True)]"/>
+			</xpath>
+			<xpath expr="//field[@name='quantity']" position="replace">
+				<field name="quantity" attrs="{'readonly': [('product_type', '=', 'service')]}"/>
+			</xpath>
+			<xpath expr="//field[@name='uom_id']" position="replace">
+				<field name="uom_id" groups="product.group_uom" attrs="{'readonly': [('product_type',
+					'=', 'service')]}"/>
+			</xpath>
+		</field>
+	</record>
+	
+	
+	
+	<!-- Add Work Hours In Product Template Form view -->
+	<record id="product_template_only_form_view_inherit" model="ir.ui.view">
+		<field name="name">product.template.inherit</field>
+		<field name="model">product.template</field>
+		<field name="inherit_id" ref="product.product_template_only_form_view"/>
+		<field name="groups_id" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+		<field name="arch" type="xml">
+			<xpath expr="//form//field[@name='categ_id']" position="after">
+				<field name="work_hours" attrs="{'invisible': [('type', 'not in', ('service'))]}"
+					/>
+			</xpath>
+			
+		</field>
+	</record>
+	
+	<!-- Add Check Measurement Line Tree View -->
+	<record id="check_measurement_line_form" model="ir.ui.view">
+		<field name="name">check measurement line form</field>
+		<field name="model">check.measurement.line</field>
+		<field name="arch" type="xml">
+			<form>
+				<field name="custom" invisible="1"/>
+				<field name="ud" />
+				<field name="states" invisible="1"/>
+				<field name="des_unit_measurement" />
+				<field name="length" attrs="{'invisible': ['|','|','|','|','|',('custom', '=', 'Hours'),('custom',
+					'=', 'Units'),('custom', '=', 'Hour(s)'),('custom', '=', 'Unit(s)'),('custom',
+					'=', 'ud'),('custom', '=', 'Unidad')]}"/>
+				<field name="width" attrs="{'invisible': ['|','|','|','|','|',('custom', '=', 'Hours'),('custom',
+					'=', 'Units'),('custom', '=', 'Hour(s)'),('custom', '=', 'Unit(s)'),('custom',
+					'=', 'ud'),('custom', '=', 'Unidad')]}"/>
+				<field name="height" attrs="{'invisible': ['|','|','|','|','|',('custom', '=', 'Hours'),('custom',
+					'=', 'Units'),('custom', '=', 'Hour(s)'),('custom', '=', 'Unit(s)'),('custom',
+					'=', 'ud'),('custom', '=', 'Unidad')]}"/>
+				<field name="measurement_result" />
+			</form>
+		</field>
+	</record>
+	
+	<record id="check_measurement_line_tree" model="ir.ui.view">
+		<field name="name">check measurement line tree</field>
+		<field name="model">check.measurement.line</field>
+		<field name="arch" type="xml">
+			<tree editable="bottom" widget="one2many_list" decoration-info="states == 'to_invoice'">
+				<field name="custom" invisible="1"/>
+				<field name="states" invisible="1"/>
+				<field name="ud" />
+				<field name="des_unit_measurement" />
+				<field name="length" attrs="{'invisible': ['|','|','|','|','|',('custom', '=', 'Hours'),('custom',
+					'=', 'Units'),('custom', '=', 'Hour(s)'),('custom', '=', 'Unit(s)'),('custom',
+					'=', 'ud'),('custom', '=', 'Unidad'),('custom', '=', 'Unidad(s)')]}"/>
+				<field name="width" attrs="{'invisible': ['|','|','|','|','|',('custom', '=', 'Hours'),('custom',
+					'=', 'Units'),('custom', '=', 'Hour(s)'),('custom', '=', 'Unit(s)'),('custom',
+					'=', 'ud'),('custom', '=', 'Unidad'),('custom', '=', 'Unidad(s)')]}"/>
+				<field name="height" attrs="{'invisible': ['|','|','|','|','|',('custom', '=', 'Hours'),('custom',
+					'=', 'Units'),('custom', '=', 'Hour(s)'),('custom', '=', 'Unit(s)'),('custom',
+					'=', 'ud'),('custom', '=', 'Unidad'),('custom', '=', 'Unidad(s)')]}"/>
+				<field name="measurement_result" />
+			</tree>
+		</field>
+	</record>
+	
+	
+	<!-- Action Check Measurement Line -->
+	<record id="action_check_measurement_line_action" model="ir.actions.act_window">
+		<field name="name">check measurement line Action</field>
+		<field name="res_model">check.measurement.line</field>
+		<field name="view_type">tree</field>
+		<field name="view_mode">tree</field>
+		<field name="target">new</field>
+	</record>
+	
+	<record id="crm.create_opportunity_simplified" model="ir.actions.act_window">
+		<field name="name">Create an Opportunity</field>
+		<field name="res_model">crm.lead</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">form</field>
+		<field name="view_id" ref="crm.crm_case_form_view_oppor"/>
+		<field name="target">current</field>
+	</record>
+	
+	<record id="sale.action_quotations" model="ir.actions.act_window">
+		<field name="name">Quotations</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">sale.order</field>
+		<field name="view_type">form</field>
+		<field name="view_id" ref="sale.view_quotation_tree"/>
+		<field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+		
+		<field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+		<field name="context">{'hide_sale': True, 'readonly_by_pass': ['product_uom', 'product_uom_qty']}</field>
+		<field name="help" type="html">
+			<p class="oe_view_nocontent_create">Create a Quotation, the first step of a new sale.</p>
+			<p>
+				Your next actions should flow efficiently: confirm the Quotation to a Sale Order,
+				then create the Invoice and collect the Payment.
+			</p>
+			<p>
+				Note that once a Quotation becomes a Sale Order, it will be moved from the Quotations
+				list to the Sales Order list.
+			</p>
+		</field>
+	</record>
+	
+	
+	<record id="view_sale_service_inherit_form2_inherit" model="ir.ui.view">
+		<field name="name">sale.timesheet.project.task.inherit</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="sale_timesheet.view_sale_service_inherit_form2"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='procurement_id']" position="replace">
+				<field name="procurement_id" groups="base.group_no_one" invisible="1" />
+			</xpath>
+			<xpath expr="//field[@name='sale_line_id']" position="replace">
+				<field name="sale_line_id" string="Order Line" groups="base.group_no_one" invisible="1"/>
+			</xpath>
+		</field>
+	</record>
+	
+	<record id="project_task_form_view_inherit" model="ir.ui.view">
+		<field name="name">project.task.inherit</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="project.view_task_form2"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='project_id']" position="after">
+				<field name="task_line" invisible="1"/>
+				<field name="start_date" invisible="1"/>
+			</xpath>
+			<xpath  expr="//field[@name='stage_id']" position="replace">
+				<field name="stage_id" widget="statusbar" invisible="1"/>
+			</xpath>
+			<xpath  expr="//button[@name='toggle_active']" position="before">
+				<button class="oe_inline oe_stat_button" type="action" name="%(crm_phonecall.crm_case_categ_phone_incoming0)d"
+					icon="fa-phone" context="{'default_task_id': active_id, 'search_default_task_id':
+					active_id}">
+					<field string="Calls" name="task_phonecall_count" widget="statinfo"/>
+				</button>
+			</xpath>
+			<xpath expr="header" position="inside">
+				<field name="state" widget="statusbar"/>
+				<button name="%(custom_oroval.action_new_wizard_custom)d" string="Restart" type="action"
+					style="background-color: #C6CB2E;" context="{'restart_task' : True}" attrs="{'invisible':
+					[('state', 'in', ('draft', 'start','continue','end'))]}" />
+				<button name="%(custom_oroval.action_new_wizard_custom)d" string="Start Task" type="action"
+					style="background-color: #4CAF50;" context="{'start_task' : True}" attrs="{'invisible':
+					[('state', 'in', ('start','continue','end','stop'))]}"/>
+				<!-- <button name="%(custom_oroval.action_new_wizard_custom)d" string="Pause Task"
+					type="action" context="{'pause_task' : True}" style="background-color: #C6CB2E;"
+					attrs="{'invisible': [('state', 'in', ('draft','pause','end','stop'))]}"/> -->
+				<button name="%(custom_oroval.action_new_wizard_custom)d" string="Continue" type="action"
+					context="{'continue_task' : True}" style="background-color: #4CAF50;" attrs="{'invisible':
+					[('state', 'in', ('draft','end','continue','start','stop'))]}"/>
+				<button name="%(custom_oroval.action_new_wizard_custom)d" string="Stop Task" type="action"
+					context="{'stop_task' : True}" style="background-color: #f44336;" attrs="{'invisible':
+					[('state', 'in', ('end','stop'))]}"/>
+				<button name="%(custom_oroval.action_new_wizard_custom)d" string="End Task" type="action"
+					context="{'end_task' : True}" style="background-color: #FF9933;" attrs="{'invisible':
+					[('state', 'in', ('draft','end','stop'))]}" />
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='partner_id']" position="replace">
+				<field name="partner_id" groups="project.group_project_manager" />
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='partner_id']" position="after">
+				<field name="customer" groups="project.group_project_user" readonly="1" />
+				<field name="email" readonly="1"  />
+				
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='sequence']" position="replace">
+				<field name="sequence" groups="base.group_no_one" invisible="1"/>
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='company_id']" position="replace">
+				<field name="company_id" groups="base.group_multi_company" options="{'no_create':
+					True}" invisible="1"/>
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='displayed_image_id']" position="replace">
+				<field name="displayed_image_id" groups="base.group_no_one" invisible="1"/>
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='date_assign']" position="replace">
+				<field name="date_assign" groups="base.group_no_one" invisible="1"/>
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='date_last_stage_update']"
+				position="replace">
+				<field name="date_last_stage_update" groups="base.group_no_one" invisible="1" />
+			</xpath>
+			<xpath expr="//notebook" position="inside">
+				<page string="Measured">
+					<group>
+						<group>
+							<field name="ud" />
+							<field name="length" />
+							<field name="width" />
+							<field name="height" />
+							<field name="measurement_result" />
+						</group>
+					</group>
+				</page>
+				<page string="Internal Notes">
+					<field name="internal_note" />
+				</page>
+			</xpath>
+			<xpath expr="//notebook//page//group//group//field[@name='date_assign']" position="after">
+				<field name="partner_shipping_id"  />
+				<label for="address" string="Address"/>
+				<div class="o_address_format">
+					<field name="address" placeholder="Street..." class="o_address_street" />
+					<field name="street2" placeholder="Street 2..." class="o_address_street"/>
+					<field name="city" placeholder="City" class="o_address_city" />
+					<field name="state_id" class="o_address_state" placeholder="State"/>
+					<field name="zip" placeholder="ZIP" class="o_address_zip" />
+					<field name="country_id" placeholder="Country" class="o_address_country" />
+				</div>
+				<field name="phone" />
+				<field name="mobile" />
+				<field name="job_position" />
+			</xpath>
+		</field>
+	</record>
+	
+	<record id="hr_timesheet_form_view_inherit" model="ir.ui.view">
+		<field name="name">project.task.inherit</field>
+		<field name="model">project.task</field>
+		<field name="inherit_id" ref="hr_timesheet.view_task_form2_inherited"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='timesheet_ids']" position="replace">
+				<field name="timesheet_ids" context="{'default_project_id': project_id}" readonly="1">
+					<tree editable="bottom" string="Timesheet Activities" default_order="date">
+						<field name="start_date" string="Start Date"/>
+						<field name="date" string="End Date"/>
+						<field name="user_id" required="1"/>
+						<field name="name"/>
+						<field name="unit_amount" string="Duration" widget="float_time"/>
+						<field name="project_id" invisible="1"/>
+					</tree>
+				</field>
+			</xpath>
+		</field>
+	</record>
+	
+	<!-- sale layout category form-->
+	<record model="ir.ui.view" id="sale_layout_category_inherit">
+		<field name="name">sale.layout_category.form.view</field>
+		<field name="model">sale.layout_category</field>
+		<field name="inherit_id" ref="sale.report_configuration_form_view"/>
+		<field name="arch" type="xml">
+			<field name="sequence" position="after" >
+				<field name="active_categ" />
+			</field>
+		</field>
+	</record>
+	
+	<!-- sale layout category tree-->
+	<record model="ir.ui.view" id="sale_layout_category_tree_inherit">
+		<field name="name">sale.layout_category.form.view</field>
+		<field name="model">sale.layout_category</field>
+		<field name="inherit_id" ref="sale.report_configuration_tree_view"/>
+		<field name="arch" type="xml">
+			<field name="sequence" position="before" >
+				<field name="active_categ" />
+			</field>
+		</field>
+	</record>
+	
+	<menuitem name="Task" id="menu_main_task" action="project.action_view_task" groups="project.group_project_user"
+		web_icon="custom_oroval,static/description/icon.png" sequence="5"/>
+	<menuitem name="Contacts" id="contacts.menu_contacts" sequence="4" action="contacts.action_contacts"
+		web_icon="contacts,static/description/icon.png" groups="project.group_project_manager,base.group_partner_manager"/>
+	
+	<!-- added next activity date in yellow icon popup form crm activity log -->
+	<record model="ir.ui.view" id="crm_activity_log_inherit_custom">
+		<field name="name">crm.activity.log.form.view</field>
+		<field name="model">crm.activity.log</field>
+		<field name="inherit_id" ref="crm.crm_activity_log_view_form_schedule"/>
+		<field name="arch" type="xml">
+			<field name="date_action" position="replace">
+				<field name="new_date_action" />
+			</field>
+		</field>
+	</record>
+	
+	<!-- added next activity date in yellow icon popup form crm activity log  -->
+	<record model="ir.ui.view" id="crm_activity_log_custom_oroval">
+		<field name="name">crm.activity.log.form.view.inherit</field>
+		<field name="model">crm.activity.log</field>
+		<field name="inherit_id" ref="crm.crm_activity_log_view_form"/>
+		<field name="arch" type="xml">
+			<field name="next_activity_id" position="after">
+				<field name="new_date_action" />
+			</field>
+		</field>
+	</record>
+	
+	<!-- added next activity date in form crm lead-->
+	<record model="ir.ui.view" id="crm_lead_custom_oroval">
+		<field name="name">crm.lead.form.view.inherit</field>
+		<field name="model">crm.lead</field>
+		<field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
+
+		<field name="arch" type="xml">
+			
+			<field name="date_action" position="replace">
+				<field name="date_action" invisible="1" />
+				<field name="new_date_action" />
+			</field>
+			<field name="phone" position="replace">
+			</field>
+			<field name="mobile" position="replace">
+			</field>
+			<xpath expr="//label[@for='street']" position="replace">
+			</xpath>
+			<xpath expr="//div[@class='o_address_format']" position="replace">
+			</xpath>
+			<field name="team_id" position="after">
+				<field name="partner_shipping_id"  />
+				<label for="street" string="Address"/>
+				<div class="o_address_format">
+					<field name="street" placeholder="Street..." class="o_address_street" />
+					<field name="street2" placeholder="Street 2..." class="o_address_street"/>
+					<field name="city" placeholder="City" class="o_address_city" />
+					<field name="state_id" class="o_address_state" placeholder="State"/>
+					<field name="zip" placeholder="ZIP" class="o_address_zip" />
+					<field name="country_id" placeholder="Country" class="o_address_country" />
+				</div>
+				<field name="phone" />
+				<field name="mobile" />
+				<field name="job_position" />
+			</field>
+		</field>
+	</record>
+
+
+	<record model="ir.ui.view" id="crm_sale_custom_oroval">
+		<field name="name">crm.lead.form.view.inherit</field>
+		<field name="model">crm.lead</field>
+		<field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
+
+		<field name="arch" type="xml">
+			 <button name="%(sale_crm.sale_action_quotations_new)d" position="replace">
+				 <button string="New Quotation" name="%(sale_crm.sale_action_quotations_new)d" type="action" class="oe_highlight"
+				        context="{'search_default_partner_id': partner_id,
+				                  'default_partner_id': partner_id,
+				                  'default_team_id': team_id ,
+						'default_partner_shipping_id' :partner_shipping_id,
+						'search_default_partner_shipping_id': partner_shipping_id,
+						}"/>
+
+			</button>
+			<button name="%(sale_crm.sale_action_quotations)d" position="replace">
+				 <button class="oe_stat_button" type="action"
+                            name="%(sale_crm.sale_action_quotations)d" icon="fa-pencil-square-o"
+                            context="{'default_partner_id': partner_id, 'search_default_draft': 1 ,'default_partner_shipping_id' :partner_shipping_id ,'search_default_partner_shipping_id': partner_shipping_id,}">
+                        <div class="o_stat_info">
+                            <field name="sale_number" class="o_stat_value"/>
+                            <span class="o_stat_text"> Quote(s) </span>
+                        </div>
+                    </button>
+
+			</button>
+			
+		</field>
+	</record>
+		
+
+	<record model="ir.ui.view" id="custom_oroval_res_partner_inherit_form">
+		<field name="name">res.partner.inherit.form</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id" ref="base.view_partner_form"/>
+		<field name="arch" type="xml">
+			<div name="button_box" position="inside">
+				<button type="object" name="custom_action_view_project_project" class="oe_stat_button"
+					icon="fa-puzzle-piece" string="Project">
+				</button>
+			</div>
+		</field>
+	</record>
+	
+</odoo>
+
+                     
+
