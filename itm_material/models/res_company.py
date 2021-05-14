@@ -23,7 +23,7 @@ class ResCompany(models.Model):
 
     @api.model
     def create(self, data):
-        res = super(ResCompany, self).write(data)
+        res = super(ResCompany, self).create(data)
         if data.get('color_background'):
             self.env['ir.qweb'].clear_caches()
         return res
